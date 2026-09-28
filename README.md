@@ -84,7 +84,7 @@ flowchart LR
     G -- Yes --> H[Validate FHIR Response]
     H --> I[Validate Patient Fields]
     I --> J[Store Patient ID in ITestContext]
-    J --> K[GET /fhir/Patient/{patientId}]
+    J --> K["GET /fhir/Patient/{patientId}"]
     K --> L{HTTP 200?}
     L -- No --> X
     L -- Yes --> M[Validate FHIR R4 and Patient ID]
