@@ -73,17 +73,19 @@ The workflow is intentionally business-oriented:
 ## End-to-end workflow
 
 ```mermaid
-flowchart LR
-    A([Start]) --> B["Prepare Patient<br/>Faker + JSON"]
+%%{init: {"theme": "base", "themeVariables": {"fontSize": "18px"}, "flowchart": {"nodeSpacing": 24, "rankSpacing": 30}}}%%
+flowchart TD
+    A([Start TestNG suite]) --> B["Prepare Patient data<br/>Faker + JSON"]
     B --> C["Validate request<br/>FHIR R4"]
-    C --> D["POST /Patient<br/>Expect 201"]
-    D --> E{Created?}
+    C --> D["POST /Patient"]
+    D --> E{HTTP 201?}
     E -- No --> X([Fail test])
     E -- Yes --> F["Validate response<br/>Save patientId"]
-    F --> G["GET /Patient/{patientId}<br/>Expect 200"]
-    G --> H{Retrieved?}
+    F --> G["GET /Patient/{patientId}"]
+    G --> H{HTTP 200?}
     H -- No --> X
-    H -- Yes --> I["Validate resource<br/>Write Extent report"]
+    H -- Yes --> I["Validate resource<br/>and Patient ID"]
+    I --> J([Write Extent report])
 
     classDef start fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:2px;
     classDef action fill:#E8EAF6,stroke:#3949AB,color:#1A237E;
@@ -92,8 +94,8 @@ flowchart LR
     classDef fail fill:#FFEBEE,stroke:#C62828,color:#B71C1C,stroke-width:2px;
     classDef store fill:#F3E5F5,stroke:#8E24AA,color:#4A148C;
 
-    class A,I start;
-    class B,D,F,G action;
+    class A,J start;
+    class B,D,F,G,I action;
     class C validation;
     class E,H decision;
     class X fail;
