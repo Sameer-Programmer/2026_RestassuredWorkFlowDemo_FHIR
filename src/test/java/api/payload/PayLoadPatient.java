@@ -4,7 +4,7 @@ import com.github.javafaker.Faker;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 
 public class PayLoadPatient {
 
@@ -22,13 +22,13 @@ public class PayLoadPatient {
         String state = faker.address().stateAbbr();
         String postalCode = faker.address().zipCode();
 
-        String path = System.getProperty("user.dir");
-
-        String patientData = path + "\\TestData\\Patient.json";
-
-        String payload = Files.readString(
-                Paths.get(patientData)
+        Path patientData = Path.of(
+                System.getProperty("user.dir"),
+                "TestData",
+                "patient.json"
         );
+
+        String payload = Files.readString(patientData);
 
         payload = payload.replace("{{firstName}}", firstName);
         payload = payload.replace("{{lastName}}", lastName);
