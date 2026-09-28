@@ -1,0 +1,35 @@
+{
+  "resourceType": "Patient",
+  "active": true,
+  "name": [
+    {
+      "use": "official",
+      "family": "{{lastName}}",
+      "given": [
+        "{{firstName}}"
+      ]
+    }
+  ],
+  "telecom": [
+    {
+      "system": "phone",
+      "value": "{{phone}}",
+      "use": "mobile"
+    }
+  ],
+  "gender": "{{gender}}",
+  "birthDate": "{{birthDate}}",
+  "address": [
+    {
+      "line": [
+        "{{street}}"
+      ],
+      "city": "{{city}}",
+      "state": "{{state}}",
+      "postalCode": "{{postalCode}}",
+      "country": "USA"
+    }
+  ],
+  "deceasedBoolean": false,
+  "multipleBirthBoolean": false
+}
