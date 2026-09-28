@@ -22,4 +22,15 @@ public class PatientEndpoints {
                 .when()
                 .get(url);
     }
+
+    // Update Patient
+    public static Response updatePatient(String url, String payload) {
+
+        return given()
+                .contentType("application/fhir+json")
+                .accept("application/fhir+json")
+                .body(payload)
+                .when()
+                .put(url);
+    }
 }

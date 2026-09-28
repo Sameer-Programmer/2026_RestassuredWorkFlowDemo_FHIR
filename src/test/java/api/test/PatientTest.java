@@ -3,6 +3,7 @@ package api.test;
 import api.endPoints.PatientEndpoints;
 import api.payload.PatientData;
 import api.payload.PayLoadPatient;
+import api.payload.PatientUpdateData;
 import api.utilities.ConfigReader;
 import api.utilities.FhirValidatorUtil;
 
@@ -349,5 +350,160 @@ public class PatientTest {
         System.out.println(
                 "\n========== GET PATIENT VALIDATION PASSED =========="
         );
+    }
+
+    // ============================================================
+    // UPDATE PATIENT - PUT
+    // ============================================================
+
+    @Test(dependsOnMethods = "getPatient")
+    public void updatePatient(ITestContext context) throws IOException {
+
+        String patientId = (String) context.getAttribute("patientId");
+        Assert.assertNotNull(
+                patientId,
+                "Patient ID was not available from getPatient test"
+        );
+
+        String url = prop.getProperty("update_url")
+                .replace("{patientId}", patientId);
+        PatientUpdateData updateData = PatientUpdateData.create(patientId);
+        String payload = updateData.getPayload();
+
+        System.out.println("========== UPDATE PATIENT ==========");
+        System.out.println("\nUpdate Payload:");
+        System.out.println(payload);
+
+        System.out.println("\n========== FHIR UPDATE REQUEST VALIDATION ==========");
+        FhirValidatorUtil.validate(payload);
+
+        Response response = PatientEndpoints.updatePatient(url, payload);
+        System.out.println("\nUpdate Response:");
+        System.out.println(response.asPrettyString());
+
+        Assert.assertEquals(
+                response.statusCode(),
+                200,
+                "Patient update failed. Expected HTTP 200."
+        );
+
+        System.out.println("\n========== FHIR UPDATE RESPONSE VALIDATION ==========");
+        FhirValidatorUtil.validate(response.asString());
+
+        Assert.assertEquals(
+                response.jsonPath().getString("resourceType"),
+                "Patient",
+                "Resource type is not Patient"
+        );
+        Assert.assertEquals(
+                response.jsonPath().getString("id"),
+                patientId,
+                "Updated Patient ID mismatch"
+        );
+        Assert.assertEquals(
+                response.jsonPath().getString("name[0].family"),
+                updateData.getLastName(),
+                "Updated family name mismatch"
+        );
+        Assert.assertEquals(
+                response.jsonPath().getString("name[0].given[0]"),
+                updateData.getFirstName(),
+                "Updated first name mismatch"
+        );
+        Assert.assertEquals(
+                response.jsonPath().getString("telecom[0].value"),
+                updateData.getPhone(),
+                "Updated phone number mismatch"
+        );
+        Assert.assertEquals(
+                response.jsonPath().getString("birthDate"),
+                updateData.getBirthDate(),
+                "Updated birth date mismatch"
+        );
+        Assert.assertEquals(
+                response.jsonPath().getString("address[0].city"),
+                updateData.getCity(),
+                "Updated city mismatch"
+        );
+        Assert.assertEquals(
+                response.jsonPath().getString("address[0].state"),
+                updateData.getState(),
+                "Updated state mismatch"
+        );
+        Assert.assertEquals(
+                response.jsonPath().getString("address[0].postalCode"),
+                updateData.getPostalCode(),
+                "Updated postal code mismatch"
+        );
+
+        context.setAttribute("updatedPatientData", updateData);
+        System.out.println("\n========== UPDATE PATIENT VALIDATION PASSED ==========");
+    }
+
+    // ============================================================
+    // GET UPDATED PATIENT - GET
+    // ============================================================
+
+    @Test(dependsOnMethods = "updatePatient")
+    public void getUpdatedPatient(ITestContext context) {
+
+        String patientId = (String) context.getAttribute("patientId");
+        PatientUpdateData updateData =
+                (PatientUpdateData) context.getAttribute("updatedPatientData");
+
+        Assert.assertNotNull(
+                patientId,
+                "Patient ID was not available after update"
+        );
+        Assert.assertNotNull(
+                updateData,
+                "Updated Patient data was not available"
+        );
+
+        String url = prop.getProperty("get_url")
+                .replace("{patientId}", patientId);
+        Response response = PatientEndpoints.getPatient(url);
+
+        System.out.println("========== GET UPDATED PATIENT ==========");
+        System.out.println(response.asPrettyString());
+
+        Assert.assertEquals(
+                response.statusCode(),
+                200,
+                "Failed to retrieve updated Patient"
+        );
+        FhirValidatorUtil.validate(response.asString());
+        Assert.assertEquals(
+                response.jsonPath().getString("resourceType"),
+                "Patient",
+                "Resource type is not Patient"
+        );
+        Assert.assertEquals(
+                response.jsonPath().getString("id"),
+                patientId,
+                "Updated Patient ID mismatch after GET"
+        );
+        Assert.assertEquals(
+                response.jsonPath().getString("name[0].family"),
+                updateData.getLastName(),
+                "Persisted family name mismatch"
+        );
+        Assert.assertEquals(
+                response.jsonPath().getString("name[0].given[0]"),
+                updateData.getFirstName(),
+                "Persisted first name mismatch"
+        );
+        Assert.assertEquals(
+                response.jsonPath().getString("telecom[0].value"),
+                updateData.getPhone(),
+                "Persisted phone number mismatch"
+        );
+        Assert.assertEquals(
+                response.jsonPath().getString("address[0].city"),
+                updateData.getCity(),
+                "Persisted city mismatch"
+        );
+
+        System.out.println("\n========== GET UPDATED PATIENT VALIDATION PASSED ==========");
     }
 }
