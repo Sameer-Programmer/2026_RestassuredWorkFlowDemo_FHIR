@@ -56,18 +56,19 @@ The workflow is intentionally business-oriented:
 5. Build a new complete Patient resource containing the same ID.
 6. Validate and update the Patient with `PUT /Patient/{patientId}`.
 7. Retrieve the updated Patient and verify the persisted changes.
+8. Delete the test Patient and verify that it is no longer retrievable.
 
-> **Current result:** The feature branch was executed against the configured HAPI FHIR server with **4 tests passed, 0 failures, and 0 skipped**.
+> **Previous result:** The create/read/update workflow was executed against the configured HAPI FHIR server with **4 tests passed, 0 failures, and 0 skipped**. The DELETE step is implemented but requires a fresh run because it intentionally removes the test-created Patient.
 
 ## What the workflow verifies
 
 | Layer | Verification |
 |---|---|
-| Transport | Correct HTTP methods, FHIR media types, and expected status codes (`201` for create, `200` for read/update) |
+| Transport | Correct HTTP methods, FHIR media types, and expected status codes (`201` for create, `200` for read/update, `204` for delete) |
 | Schema | Request and response resources pass HAPI FHIR R4 validation |
 | Resource identity | `resourceType` is `Patient`; the response contains a non-empty ID |
 | Patient data | Name, phone, gender, birth date, and address values match generated input |
-| Workflow chaining | The ID returned by POST is passed through GET, PUT, and post-update GET tests |
+| Workflow chaining | The ID returned by POST is passed through GET, PUT, post-update GET, DELETE, and deletion verification |
 | Test observability | TestNG lifecycle events are published to an Extent HTML report |
 
 ## End-to-end workflow
@@ -91,7 +92,13 @@ flowchart TD
     K -- Yes --> L["GET updated Patient"]
     L --> M{HTTP 200?}
     M -- No --> X
-    M -- Yes --> N["Validate updated fields<br/>Write Extent report"]
+    M -- Yes --> N["DELETE /Patient/{patientId}"]
+    N --> O{HTTP 204?}
+    O -- No --> X
+    O -- Yes --> P["GET deleted Patient"]
+    P --> Q{HTTP 404?}
+    Q -- No --> X
+    Q -- Yes --> R["Confirm deletion<br/>Write Extent report"]
 
     classDef start fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:2px;
     classDef action fill:#E8EAF6,stroke:#3949AB,color:#1A237E;
@@ -100,10 +107,10 @@ flowchart TD
     classDef fail fill:#FFEBEE,stroke:#C62828,color:#B71C1C,stroke-width:2px;
     classDef store fill:#F3E5F5,stroke:#8E24AA,color:#4A148C;
 
-    class A,N start;
-    class B,D,F,G,J,L action;
+    class A,R start;
+    class B,D,F,G,J,L,N,P action;
     class C,I validation;
-    class E,H,K,M decision;
+    class E,H,K,M,O,Q decision;
     class X fail;
 ```
 
@@ -130,20 +137,20 @@ flowchart TD
 │   └── patient.json                          # FHIR Patient template with placeholders
 ├── src/test/java/api/
 │   ├── endPoints/
-│   │   └── PatientEndpoints.java             # POST, GET, and PUT request methods
+│   │   └── PatientEndpoints.java             # POST, GET, PUT, and DELETE methods
 │   ├── payload/
 │   │   ├── PatientData.java                  # Generated values carried through assertions
 │   │   ├── PayLoadPatient.java               # Create payload generation
 │   │   └── PatientUpdateData.java            # Complete update payload generation
 │   ├── test/
-│   │   └── PatientTest.java                  # Create → get → update → get workflow
+│   │   └── PatientTest.java                  # Create → get → update → get → delete workflow
 │   └── utilities/
 │       ├── ConfigReader.java                 # Environment property loading
 │       ├── ExtentReportManager.java          # Report initialization
 │       ├── ExtentTestListener.java           # TestNG-to-Extent integration
 │       └── FhirValidatorUtil.java            # HAPI FHIR R4 validation helper
 ├── src/test/resources/
-│   ├── Config-DevRoute.properties            # POST, GET, and PUT endpoint routes
+│   ├── Config-DevRoute.properties            # POST, GET, PUT, and DELETE routes
 │   └── log4j2.xml                            # Logging configuration placeholder
 └── test-output/
     └── ExtentReport.html                     # Generated HTML execution report
@@ -182,6 +189,7 @@ Open `src/test/resources/Config-DevRoute.properties`:
 post_url=https://fhir-bootcamp.medblocks.com/fhir/Patient
 get_url=https://fhir-bootcamp.medblocks.com/fhir/Patient/{patientId}
 update_url=https://fhir-bootcamp.medblocks.com/fhir/Patient/{patientId}
+delete_url=https://fhir-bootcamp.medblocks.com/fhir/Patient/{patientId}
 ```
 
 The `{patientId}` token is replaced at runtime with the ID returned by the create request.
@@ -230,6 +238,7 @@ The environment file must expose the same keys:
 post_url=https://your-server.example/fhir/Patient
 get_url=https://your-server.example/fhir/Patient/{patientId}
 update_url=https://your-server.example/fhir/Patient/{patientId}
+delete_url=https://your-server.example/fhir/Patient/{patientId}
 ```
 
 ## Step-by-step implementation
@@ -366,6 +375,37 @@ getUpdatedPatient
 
 `ExtentTestListener` creates a report test for every TestNG method, marks it passed/failed/skipped, and flushes the report at suite completion.
 
+### Step 12: Delete the Patient
+
+`PatientEndpoints.deletePatient()` sends:
+
+```http
+DELETE /fhir/Patient/{patientId}
+Accept: application/fhir+json
+```
+
+The test expects HTTP `204 No Content` and stores the deleted ID for the final verification step. The delete is deliberately placed at the end of the chain so the create, read, and update assertions can run against a real resource first.
+
+### Step 13: Verify deletion
+
+`verifyPatientDeleted` performs a final GET against the deleted resource and expects HTTP `404 Not Found`. This confirms that the server no longer exposes the test Patient after the DELETE call.
+
+The complete TestNG dependency chain is:
+
+```text
+createPatient
+    ↓
+getPatient
+    ↓
+updatePatient
+    ↓
+getUpdatedPatient
+    ↓
+deletePatient
+    ↓
+verifyPatientDeleted
+```
+
 ## Validation coverage
 
 ### Request validation
@@ -406,6 +446,8 @@ The checked-in report currently shows:
 | `getPatient` | **PASS** | Retrieves and validates the created Patient |
 | `updatePatient` | **PASS** | Updates and validates the Patient resource with PUT |
 | `getUpdatedPatient` | **PASS** | Confirms the updated values persisted after GET |
+| `deletePatient` | **PENDING RUN** | Deletes the test Patient with DELETE and expects `204` |
+| `verifyPatientDeleted` | **PENDING RUN** | Confirms the deleted Patient returns `404` |
 
 To remove old output before a new run:
 
