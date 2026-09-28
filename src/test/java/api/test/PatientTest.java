@@ -506,4 +506,62 @@ public class PatientTest {
 
         System.out.println("\n========== GET UPDATED PATIENT VALIDATION PASSED ==========");
     }
+
+    // ============================================================
+    // DELETE PATIENT - DELETE
+    // ============================================================
+
+    @Test(dependsOnMethods = "getUpdatedPatient")
+    public void deletePatient(ITestContext context) {
+
+        String patientId = (String) context.getAttribute("patientId");
+        Assert.assertNotNull(
+                patientId,
+                "Patient ID was not available before delete"
+        );
+
+        String url = prop.getProperty("delete_url")
+                .replace("{patientId}", patientId);
+        Response response = PatientEndpoints.deletePatient(url);
+
+        System.out.println("========== DELETE PATIENT ==========");
+        System.out.println("Delete response status: " + response.statusCode());
+
+        Assert.assertTrue(
+                response.statusCode() == 200 || response.statusCode() == 204,
+                "Patient deletion failed. Expected HTTP 200 or 204, but received "
+                        + response.statusCode()
+        );
+
+        context.setAttribute("deletedPatientId", patientId);
+        System.out.println("\n========== DELETE PATIENT VALIDATION PASSED ==========");
+    }
+
+    // ============================================================
+    // VERIFY PATIENT DELETION - GET
+    // ============================================================
+
+    @Test(dependsOnMethods = "deletePatient")
+    public void verifyPatientDeleted(ITestContext context) {
+
+        String patientId = (String) context.getAttribute("deletedPatientId");
+        Assert.assertNotNull(
+                patientId,
+                "Deleted Patient ID was not available for verification"
+        );
+
+        String url = prop.getProperty("get_url")
+                .replace("{patientId}", patientId);
+        Response response = PatientEndpoints.getPatient(url);
+
+        System.out.println("========== VERIFY PATIENT DELETION ==========");
+        System.out.println("Verification response status: " + response.statusCode());
+
+        Assert.assertTrue(
+                response.statusCode() == 404 || response.statusCode() == 410,
+                "Deleted Patient should not be retrievable. Expected HTTP 404 or 410, but received "
+                        + response.statusCode()
+        );
+        System.out.println("\n========== PATIENT DELETION VERIFIED ==========");
+    }
 }

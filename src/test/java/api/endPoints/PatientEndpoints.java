@@ -33,4 +33,13 @@ public class PatientEndpoints {
                 .when()
                 .put(url);
     }
+
+    // Delete Patient
+    public static Response deletePatient(String url) {
+
+        return given()
+                .accept("application/fhir+json")
+                .when()
+                .delete(url);
+    }
 }
