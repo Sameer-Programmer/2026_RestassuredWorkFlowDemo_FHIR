@@ -74,21 +74,29 @@ The workflow is intentionally business-oriented:
 
 ```mermaid
 flowchart LR
-    A[Start TestNG Suite] --> B[Load Dev Route Properties]
-    B --> C[Generate Faker Patient Data]
-    C --> D[Replace JSON Placeholders]
-    D --> E[Validate Request as FHIR R4]
-    E --> F[POST /fhir/Patient]
-    F --> G{HTTP 201?}
-    G -- No --> X[Fail Test]
-    G -- Yes --> H[Validate FHIR Response]
-    H --> I[Validate Patient Fields]
-    I --> J[Store Patient ID in ITestContext]
-    J --> K["GET /fhir/Patient/{patientId}"]
-    K --> L{HTTP 200?}
-    L -- No --> X
-    L -- Yes --> M[Validate FHIR R4 and Patient ID]
-    M --> N[Write Extent Report]
+    A([Start]) --> B["Prepare Patient<br/>Faker + JSON"]
+    B --> C["Validate request<br/>FHIR R4"]
+    C --> D["POST /Patient<br/>Expect 201"]
+    D --> E{Created?}
+    E -- No --> X([Fail test])
+    E -- Yes --> F["Validate response<br/>Save patientId"]
+    F --> G["GET /Patient/{patientId}<br/>Expect 200"]
+    G --> H{Retrieved?}
+    H -- No --> X
+    H -- Yes --> I["Validate resource<br/>Write Extent report"]
+
+    classDef start fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:2px;
+    classDef action fill:#E8EAF6,stroke:#3949AB,color:#1A237E;
+    classDef validation fill:#E0F7FA,stroke:#00838F,color:#006064;
+    classDef decision fill:#FFF3E0,stroke:#EF6C00,color:#E65100,stroke-width:2px;
+    classDef fail fill:#FFEBEE,stroke:#C62828,color:#B71C1C,stroke-width:2px;
+    classDef store fill:#F3E5F5,stroke:#8E24AA,color:#4A148C;
+
+    class A,I start;
+    class B,D,F,G action;
+    class C validation;
+    class E,H decision;
+    class X fail;
 ```
 
 ## Technology stack
