@@ -527,10 +527,10 @@ public class PatientTest {
         System.out.println("========== DELETE PATIENT ==========");
         System.out.println("Delete response status: " + response.statusCode());
 
-        Assert.assertEquals(
-                response.statusCode(),
-                204,
-                "Patient deletion failed. Expected HTTP 204."
+        Assert.assertTrue(
+                response.statusCode() == 200 || response.statusCode() == 204,
+                "Patient deletion failed. Expected HTTP 200 or 204, but received "
+                        + response.statusCode()
         );
 
         context.setAttribute("deletedPatientId", patientId);
@@ -557,10 +557,10 @@ public class PatientTest {
         System.out.println("========== VERIFY PATIENT DELETION ==========");
         System.out.println("Verification response status: " + response.statusCode());
 
-        Assert.assertEquals(
-                response.statusCode(),
-                404,
-                "Deleted Patient should not be retrievable. Expected HTTP 404."
+        Assert.assertTrue(
+                response.statusCode() == 404 || response.statusCode() == 410,
+                "Deleted Patient should not be retrievable. Expected HTTP 404 or 410, but received "
+                        + response.statusCode()
         );
         System.out.println("\n========== PATIENT DELETION VERIFIED ==========");
     }

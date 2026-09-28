@@ -58,13 +58,13 @@ The workflow is intentionally business-oriented:
 7. Retrieve the updated Patient and verify the persisted changes.
 8. Delete the test Patient and verify that it is no longer retrievable.
 
-> **Previous result:** The create/read/update workflow was executed against the configured HAPI FHIR server with **4 tests passed, 0 failures, and 0 skipped**. The DELETE step is implemented but requires a fresh run because it intentionally removes the test-created Patient.
+> **Verified result:** The complete create/read/update/delete workflow was executed against the configured HAPI FHIR server with **6 tests passed, 0 failures, and 0 skipped**. The server returned `200 OK` for DELETE and `410 Gone` when the deleted Patient was read afterward.
 
 ## What the workflow verifies
 
 | Layer | Verification |
 |---|---|
-| Transport | Correct HTTP methods, FHIR media types, and expected status codes (`201` for create, `200` for read/update, `204` for delete) |
+| Transport | Correct HTTP methods, FHIR media types, and expected status codes (`201` for create, `200` for read/update/delete) |
 | Schema | Request and response resources pass HAPI FHIR R4 validation |
 | Resource identity | `resourceType` is `Patient`; the response contains a non-empty ID |
 | Patient data | Name, phone, gender, birth date, and address values match generated input |
@@ -93,10 +93,10 @@ flowchart TD
     L --> M{HTTP 200?}
     M -- No --> X
     M -- Yes --> N["DELETE /Patient/{patientId}"]
-    N --> O{HTTP 204?}
+    N --> O{HTTP 200 or 204?}
     O -- No --> X
     O -- Yes --> P["GET deleted Patient"]
-    P --> Q{HTTP 404?}
+    P --> Q{HTTP 404 or 410?}
     Q -- No --> X
     Q -- Yes --> R["Confirm deletion<br/>Write Extent report"]
 
@@ -371,10 +371,6 @@ updatePatient
 getUpdatedPatient
 ```
 
-### Step 12: Publish the execution report
-
-`ExtentTestListener` creates a report test for every TestNG method, marks it passed/failed/skipped, and flushes the report at suite completion.
-
 ### Step 12: Delete the Patient
 
 `PatientEndpoints.deletePatient()` sends:
@@ -384,11 +380,11 @@ DELETE /fhir/Patient/{patientId}
 Accept: application/fhir+json
 ```
 
-The test expects HTTP `204 No Content` and stores the deleted ID for the final verification step. The delete is deliberately placed at the end of the chain so the create, read, and update assertions can run against a real resource first.
+The test accepts HTTP `200 OK` or `204 No Content` and stores the deleted ID for the final verification step. The configured HAPI FHIR server currently returns `200 OK`. The delete is deliberately placed at the end of the chain so the create, read, and update assertions can run against a real resource first.
 
 ### Step 13: Verify deletion
 
-`verifyPatientDeleted` performs a final GET against the deleted resource and expects HTTP `404 Not Found`. This confirms that the server no longer exposes the test Patient after the DELETE call.
+`verifyPatientDeleted` performs a final GET against the deleted resource and accepts HTTP `404 Not Found` or `410 Gone`. The configured HAPI FHIR server currently returns `410 Gone` with an OperationOutcome stating that the resource was deleted. This confirms that the server no longer exposes the test Patient after the DELETE call.
 
 The complete TestNG dependency chain is:
 
@@ -405,6 +401,10 @@ deletePatient
     ↓
 verifyPatientDeleted
 ```
+
+### Step 14: Publish the execution report
+
+`ExtentTestListener` creates a report test for every TestNG method, marks it passed/failed/skipped, and flushes the report at suite completion.
 
 ## Validation coverage
 
@@ -446,8 +446,8 @@ The checked-in report currently shows:
 | `getPatient` | **PASS** | Retrieves and validates the created Patient |
 | `updatePatient` | **PASS** | Updates and validates the Patient resource with PUT |
 | `getUpdatedPatient` | **PASS** | Confirms the updated values persisted after GET |
-| `deletePatient` | **PENDING RUN** | Deletes the test Patient with DELETE and expects `204` |
-| `verifyPatientDeleted` | **PENDING RUN** | Confirms the deleted Patient returns `404` |
+| `deletePatient` | **PASS** | Deletes the test Patient; server returned `200` |
+| `verifyPatientDeleted` | **PASS** | Confirms the deleted Patient returns `410 Gone` |
 
 To remove old output before a new run:
 
