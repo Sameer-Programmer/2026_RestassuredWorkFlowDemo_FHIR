@@ -13,7 +13,7 @@
 
         <classes>
             <class name="api.test.PatientTest"/>
-            <class name="api.test.ObservationNegativeTest"/>
+            <class name="api.test.ObservationTest"/>
         </classes>
 
     </test>

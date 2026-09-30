@@ -147,8 +147,8 @@ flowchart TD
 │   │   ├── PatientUpdateData.java            # Complete update payload generation
 │   │   └── ObservationData.java              # Dynamic Observation create/update payloads
 │   ├── test/
-│   │   ├── PatientTest.java                  # Chained Patient + Observation workflow
-│   │   └── ObservationNegativeTest.java      # Invalid and unknown-resource coverage
+│   │   ├── PatientTest.java                  # Patient CRUD workflow tests
+│   │   └── ObservationTest.java              # Observation CRUD and negative tests
 │   └── utilities/
 │       ├── ConfigReader.java                 # Environment property loading
 │       ├── ExtentReportManager.java          # Report initialization
@@ -220,7 +220,7 @@ The required dependencies are declared in `pom.xml`, including Rest Assured, Tes
 mvn clean test
 ```
 
-The Maven Surefire plugin is configured to execute `testNg.xml`, which runs the Patient and Observation positive/negative suites.
+The Maven Surefire plugin is configured to execute `testNg.xml`, which runs `PatientTest` and `ObservationTest`. TestNG group dependencies preserve the chained order across classes: Patient create/read, Observation create/read, Patient update/read, Observation update/delete/verify, then Patient delete/verify. Observation negative tests run in the same Observation test class.
 
 ## GitHub Actions
 

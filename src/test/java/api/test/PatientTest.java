@@ -1,8 +1,6 @@
 package api.test;
 
-import api.endPoints.ObservationEndpoints;
 import api.endPoints.PatientEndpoints;
-import api.payload.ObservationData;
 import api.payload.PatientData;
 import api.payload.PatientUpdateData;
 import api.utilities.ConfigReader;
@@ -238,7 +236,7 @@ public class PatientTest {
     // GET PATIENT - GET
     // ============================================================
 
-    @Test(dependsOnMethods = "createPatient")
+    @Test(dependsOnMethods = "createPatient", groups = "patient-ready")
     public void getPatient(ITestContext context) {
 
         // --------------------------------------------------------
@@ -353,95 +351,10 @@ public class PatientTest {
     }
 
     // ============================================================
-    // CREATE OBSERVATION - POST
-    // ============================================================
-
-    @Test(dependsOnMethods = "getPatient")
-    public void createObservation(ITestContext context) throws IOException {
-        String patientId = (String) context.getAttribute("patientId");
-        Assert.assertNotNull(patientId, "Patient ID was not available for Observation creation");
-
-        ObservationData observationData = new ObservationData(patientId);
-        String payload = observationData.getPayload();
-        FhirValidatorUtil.validate(payload);
-
-        String url = prop.getProperty("observation_post_url");
-        Response response = ObservationEndpoints.createObservation(url, payload);
-        System.out.println("========== CREATE OBSERVATION ==========");
-        System.out.println(response.asPrettyString());
-
-        Assert.assertEquals(response.statusCode(), 201,
-                "Observation creation failed. Expected HTTP 201.");
-        FhirValidatorUtil.validate(response.asString());
-        Assert.assertEquals(response.jsonPath().getString("resourceType"), "Observation",
-                "Resource type is not Observation");
-        Assert.assertEquals(response.jsonPath().getString("status"), observationData.getStatus(),
-                "Observation status mismatch");
-        Assert.assertEquals(response.jsonPath().getString("code.coding[0].system"), observationData.getCodingSystem(),
-                "Observation coding system mismatch");
-        Assert.assertEquals(response.jsonPath().getString("code.coding[0].code"), observationData.getCodingCode(),
-                "Observation LOINC code mismatch");
-        Assert.assertEquals(response.jsonPath().getString("code.coding[0].display"), observationData.getCodingDisplay(),
-                "Observation coding display mismatch");
-        Assert.assertEquals(response.jsonPath().getDouble("valueQuantity.value"), observationData.getValue(),
-                "Observation value mismatch");
-        Assert.assertEquals(response.jsonPath().getString("valueQuantity.unit"), observationData.getUnit(),
-                "Observation unit mismatch");
-        Assert.assertEquals(response.jsonPath().getString("valueQuantity.system"), observationData.getQuantitySystem(),
-                "Observation quantity system mismatch");
-        Assert.assertEquals(response.jsonPath().getString("valueQuantity.code"), observationData.getQuantityCode(),
-                "Observation quantity code mismatch");
-        Assert.assertEquals(response.jsonPath().getString("subject.reference"), "Patient/" + patientId,
-                "Observation subject mismatch");
-        Assert.assertEquals(response.jsonPath().getString("effectiveDateTime"), observationData.getEffectiveDate(),
-                "Observation effective date mismatch");
-        Assert.assertEquals(response.jsonPath().getString("note[0].text"), observationData.getNote(),
-                "Observation note mismatch");
-
-        String observationId = response.jsonPath().getString("id");
-        Assert.assertNotNull(observationId, "Observation ID should not be null");
-        Assert.assertFalse(observationId.isBlank(), "Observation ID should not be empty");
-        context.setAttribute("observationId", observationId);
-        context.setAttribute("observationData", observationData);
-    }
-
-    // ============================================================
-    // GET OBSERVATION - GET
-    // ============================================================
-
-    @Test(dependsOnMethods = "createObservation")
-    public void getObservation(ITestContext context) {
-        String observationId = (String) context.getAttribute("observationId");
-        Assert.assertNotNull(observationId, "Observation ID was not available from createObservation");
-
-        String url = prop.getProperty("observation_get_url")
-                .replace("{observationId}", observationId);
-        Response response = ObservationEndpoints.getObservation(url);
-        System.out.println("========== GET OBSERVATION ==========");
-        System.out.println(response.asPrettyString());
-
-        Assert.assertEquals(response.statusCode(), 200, "Failed to retrieve Observation");
-        FhirValidatorUtil.validate(response.asString());
-        Assert.assertEquals(response.jsonPath().getString("resourceType"), "Observation",
-                "Resource type is not Observation");
-        Assert.assertEquals(response.jsonPath().getString("id"), observationId,
-                "Observation ID mismatch");
-        Assert.assertNotNull(response.jsonPath().getString("valueQuantity.value"),
-                "Observation value should be present");
-        Assert.assertNotNull(response.jsonPath().getString("subject.reference"),
-                "Observation subject should be present");
-        ObservationData observationData = (ObservationData) context.getAttribute("observationData");
-        Assert.assertEquals(response.jsonPath().getString("code.coding[0].display"), observationData.getCodingDisplay(),
-                "Observation coding display mismatch after GET");
-        Assert.assertEquals(response.jsonPath().getDouble("valueQuantity.value"), observationData.getValue(),
-                "Observation value mismatch after GET");
-    }
-
-    // ============================================================
     // UPDATE PATIENT - PUT
     // ============================================================
 
-    @Test(dependsOnMethods = "getObservation")
+    @Test(dependsOnGroups = "observation-ready")
     public void updatePatient(ITestContext context) throws IOException {
 
         String patientId = (String) context.getAttribute("patientId");
@@ -529,7 +442,7 @@ public class PatientTest {
     // GET UPDATED PATIENT - GET
     // ============================================================
 
-    @Test(dependsOnMethods = "updatePatient")
+    @Test(dependsOnMethods = "updatePatient", groups = "patient-updated-read")
     public void getUpdatedPatient(ITestContext context) {
 
         String patientId = (String) context.getAttribute("patientId");
@@ -593,97 +506,10 @@ public class PatientTest {
     }
 
     // ============================================================
-    // UPDATE OBSERVATION - PUT
-    // ============================================================
-
-    @Test(dependsOnMethods = "getUpdatedPatient")
-    public void updateObservation(ITestContext context) throws IOException {
-        String patientId = (String) context.getAttribute("patientId");
-        String observationId = (String) context.getAttribute("observationId");
-        Assert.assertNotNull(patientId, "Patient ID was not available for Observation update");
-        Assert.assertNotNull(observationId, "Observation ID was not available for update");
-
-        ObservationData updateData = new ObservationData(patientId, observationId);
-        String url = prop.getProperty("observation_update_url")
-                .replace("{observationId}", observationId);
-        String payload = updateData.getPayload();
-        FhirValidatorUtil.validate(payload);
-
-        Response response = ObservationEndpoints.updateObservation(url, payload);
-        System.out.println("========== UPDATE OBSERVATION ==========");
-        System.out.println(response.asPrettyString());
-
-        Assert.assertEquals(response.statusCode(), 200,
-                "Observation update failed. Expected HTTP 200.");
-        FhirValidatorUtil.validate(response.asString());
-        Assert.assertEquals(response.jsonPath().getString("resourceType"), "Observation",
-                "Resource type is not Observation");
-        Assert.assertEquals(response.jsonPath().getString("id"), observationId,
-                "Updated Observation ID mismatch");
-        Assert.assertEquals(response.jsonPath().getString("code.coding[0].system"), updateData.getCodingSystem(),
-                "Updated Observation coding system mismatch");
-        Assert.assertEquals(response.jsonPath().getString("code.coding[0].code"), updateData.getCodingCode(),
-                "Updated Observation LOINC code mismatch");
-        Assert.assertEquals(response.jsonPath().getString("code.coding[0].display"), updateData.getCodingDisplay(),
-                "Updated Observation coding display mismatch");
-        Assert.assertEquals(response.jsonPath().getDouble("valueQuantity.value"), updateData.getValue(),
-                "Updated Observation value mismatch");
-        Assert.assertEquals(response.jsonPath().getString("valueQuantity.unit"), updateData.getUnit(),
-                "Updated Observation unit mismatch");
-        Assert.assertEquals(response.jsonPath().getString("subject.reference"), "Patient/" + patientId,
-                "Updated Observation subject mismatch");
-        Assert.assertEquals(response.jsonPath().getString("effectiveDateTime"), updateData.getEffectiveDate(),
-                "Updated Observation effective date mismatch");
-        Assert.assertEquals(response.jsonPath().getString("note[0].text"), updateData.getNote(),
-                "Updated Observation note mismatch");
-        context.setAttribute("updatedObservationData", updateData);
-    }
-
-    // ============================================================
-    // DELETE OBSERVATION - DELETE
-    // ============================================================
-
-    @Test(dependsOnMethods = "updateObservation")
-    public void deleteObservation(ITestContext context) {
-        String observationId = (String) context.getAttribute("observationId");
-        Assert.assertNotNull(observationId, "Observation ID was not available before delete");
-
-        String url = prop.getProperty("observation_delete_url")
-                .replace("{observationId}", observationId);
-        Response response = ObservationEndpoints.deleteObservation(url);
-        System.out.println("========== DELETE OBSERVATION ==========");
-        System.out.println("Delete response status: " + response.statusCode());
-
-        Assert.assertTrue(response.statusCode() == 200 || response.statusCode() == 204,
-                "Observation deletion failed. Expected HTTP 200 or 204, but received "
-                        + response.statusCode());
-    }
-
-    // ============================================================
-    // VERIFY OBSERVATION DELETION - GET
-    // ============================================================
-
-    @Test(dependsOnMethods = "deleteObservation")
-    public void verifyObservationDeleted(ITestContext context) {
-        String observationId = (String) context.getAttribute("observationId");
-        Assert.assertNotNull(observationId, "Deleted Observation ID was not available for verification");
-
-        String url = prop.getProperty("observation_get_url")
-                .replace("{observationId}", observationId);
-        Response response = ObservationEndpoints.getObservation(url);
-        System.out.println("========== VERIFY OBSERVATION DELETION ==========");
-        System.out.println("Verification response status: " + response.statusCode());
-
-        Assert.assertTrue(response.statusCode() == 404 || response.statusCode() == 410,
-                "Deleted Observation should not be retrievable. Expected HTTP 404 or 410, but received "
-                        + response.statusCode());
-    }
-
-    // ============================================================
     // DELETE PATIENT - DELETE
     // ============================================================
 
-    @Test(dependsOnMethods = "verifyObservationDeleted")
+    @Test(dependsOnGroups = "observation-deleted")
     public void deletePatient(ITestContext context) {
 
         String patientId = (String) context.getAttribute("patientId");
