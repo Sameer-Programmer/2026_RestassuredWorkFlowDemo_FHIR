@@ -67,7 +67,7 @@ The workflow is intentionally business-oriented:
 | Layer | Verification |
 |---|---|
 | Transport | Correct HTTP methods, FHIR media types, and expected status codes (`201` for create, `200` for read/update/delete) |
-| Schema | Request and response resources pass HAPI FHIR R4 validation |
+| Schema | Request and response resources pass JSON Schema and HAPI FHIR R4 validation |
 | Resource identity | `resourceType` is `Patient`; the response contains a non-empty ID |
 | Patient data | Name, phone, gender, birth date, and address values match generated input |
 | Workflow chaining | The ID returned by POST is passed through GET, PUT, post-update GET, DELETE, and deletion verification |
@@ -78,41 +78,67 @@ The workflow is intentionally business-oriented:
 ```mermaid
 %%{init: {"theme": "base", "themeVariables": {"fontSize": "18px"}, "flowchart": {"nodeSpacing": 24, "rankSpacing": 30}}}%%
 flowchart TD
-    A([Start TestNG suite]) --> B["Prepare Patient data<br/>Faker + JSON"]
-    B --> C["Validate request<br/>FHIR R4"]
+    A([Start TestNG suite]) --> B["PatientTest: create Patient payload"]
+    B --> C["Validate Patient request<br/>JSON Schema + FHIR R4"]
     C --> D["POST /Patient"]
     D --> E{HTTP 201?}
-    E -- No --> X([Fail test])
-    E -- Yes --> F["Validate response<br/>Save patientId"]
+    E -- No --> X([Fail workflow])
+    E -- Yes --> F["Validate Patient response<br/>JSON Schema + FHIR R4<br/>Save patientId"]
     F --> G["GET /Patient/{patientId}"]
     G --> H{HTTP 200?}
     H -- No --> X
-    H -- Yes --> I["Prepare update payload<br/>Validate FHIR R4"]
-    I --> J["PUT /Patient/{patientId}"]
-    J --> K{HTTP 200?}
-    K -- No --> X
-    K -- Yes --> L["GET updated Patient"]
-    L --> M{HTTP 200?}
+    H -- Yes --> I["Validate Patient GET response<br/>JSON Schema + FHIR R4"]
+    I --> J["ObservationTest: create linked Observation"]
+    J --> K["Validate Observation request<br/>JSON Schema + FHIR R4"]
+    K --> L["POST /Observation"]
+    L --> M{HTTP 201?}
     M -- No --> X
-    M -- Yes --> N["DELETE /Patient/{patientId}"]
-    N --> O{HTTP 200 or 204?}
-    O -- No --> X
-    O -- Yes --> P["GET deleted Patient"]
-    P --> Q{HTTP 404 or 410?}
-    Q -- No --> X
-    Q -- Yes --> R["Confirm deletion<br/>Write Extent report"]
+    M -- Yes --> N["Validate Observation response<br/>JSON Schema + FHIR R4<br/>Save observationId"]
+    N --> O["GET /Observation/{observationId}"]
+    O --> P{HTTP 200?}
+    P -- No --> X
+    P -- Yes --> Q["Validate Observation GET response<br/>JSON Schema + FHIR R4"]
+    Q --> R["PatientTest: update Patient"]
+    R --> S["Validate Patient PUT request<br/>JSON Schema + FHIR R4"]
+    S --> T["PUT /Patient/{patientId}"]
+    T --> U{HTTP 200?}
+    U -- No --> X
+    U -- Yes --> V["Validate Patient PUT response<br/>JSON Schema + FHIR R4"]
+    V --> W["GET updated Patient"]
+    W --> Y{HTTP 200?}
+    Y -- No --> X
+    Y -- Yes --> Z["Validate updated Patient<br/>JSON Schema + FHIR R4"]
+    Z --> AA["ObservationTest: update Observation"]
+    AA --> AB["Validate Observation PUT request<br/>JSON Schema + FHIR R4"]
+    AB --> AC["PUT /Observation/{observationId}"]
+    AC --> AD{HTTP 200?}
+    AD -- No --> X
+    AD -- Yes --> AE["Validate Observation PUT response<br/>JSON Schema + FHIR R4"]
+    AE --> AF["DELETE /Observation/{observationId}"]
+    AF --> AG{HTTP 200 or 204?}
+    AG -- No --> X
+    AG -- Yes --> AH["GET deleted Observation"]
+    AH --> AI{HTTP 404 or 410?}
+    AI -- No --> X
+    AI -- Yes --> AJ["PatientTest: DELETE /Patient/{patientId}"]
+    AJ --> AK{HTTP 200 or 204?}
+    AK -- No --> X
+    AK -- Yes --> AL["GET deleted Patient"]
+    AL --> AM{HTTP 404 or 410?}
+    AM -- No --> X
+    AM -- Yes --> AN([Workflow passed<br/>Extent report generated])
+    A -. "Also runs independent Observation negative tests" .-> AO["Invalid resource type, unknown ID,<br/>invalid update, unknown delete"]
 
     classDef start fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:2px;
     classDef action fill:#E8EAF6,stroke:#3949AB,color:#1A237E;
     classDef validation fill:#E0F7FA,stroke:#00838F,color:#006064;
     classDef decision fill:#FFF3E0,stroke:#EF6C00,color:#E65100,stroke-width:2px;
     classDef fail fill:#FFEBEE,stroke:#C62828,color:#B71C1C,stroke-width:2px;
-    classDef store fill:#F3E5F5,stroke:#8E24AA,color:#4A148C;
 
-    class A,R start;
-    class B,D,F,G,J,L,N,P action;
-    class C,I validation;
-    class E,H,K,M,O,Q decision;
+    class A,AN start;
+    class B,D,F,G,J,L,N,O,R,T,V,W,AA,AC,AF,AH,AJ,AL,AO action;
+    class C,I,K,Q,S,Z,AB,AE validation;
+    class E,H,M,P,U,Y,AD,AG,AI,AK,AM decision;
     class X fail;
 ```
 
