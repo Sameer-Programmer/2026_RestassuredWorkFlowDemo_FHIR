@@ -1,28 +1,28 @@
 {
   "resourceType": "Observation",
-  "status": "final",
+  "status": "{{status}}",
   "code": {
     "coding": [
       {
-        "system": "http://loinc.org",
-        "code": "4548-4",
-        "display": "Hemoglobin A1c/Hemoglobin.total in Blood"
+        "system": "{{codingSystem}}",
+        "code": "{{codingCode}}",
+        "display": "{{codingDisplay}}"
       }
     ]
   },
   "valueQuantity": {
     "value": {{value}},
-    "unit": "%",
-    "system": "http://unitsofmeasure.org",
-    "code": "%"
+    "unit": "{{unit}}",
+    "system": "{{quantitySystem}}",
+    "code": "{{quantityCode}}"
   },
   "subject": {
     "reference": "Patient/{{patientId}}"
   },
+  "effectiveDateTime": "{{effectiveDate}}",
   "note": [
     {
-      "text": {{note}}
+      "text": "{{note}}"
     }
-  ],
-  "effectiveDateTime": "{{effectiveDate}}"
+  ]
 }
