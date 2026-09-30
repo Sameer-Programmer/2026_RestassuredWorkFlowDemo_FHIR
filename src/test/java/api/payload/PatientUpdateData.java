@@ -1,6 +1,6 @@
 package api.payload;
 
-import com.github.javafaker.Faker;
+import api.utilities.FakerUtil;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -39,7 +39,7 @@ public class PatientUpdateData {
     }
 
     public static PatientUpdateData create(String patientId) throws IOException {
-        Faker faker = new Faker();
+        var faker = FakerUtil.getFaker();
         String firstName = "Updated" + faker.name().firstName();
         String lastName = faker.name().lastName();
         String phone = faker.phoneNumber().cellPhone();

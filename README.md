@@ -153,7 +153,8 @@ flowchart TD
 │       ├── ConfigReader.java                 # Environment property loading
 │       ├── ExtentReportManager.java          # Report initialization
 │       ├── ExtentTestListener.java           # TestNG-to-Extent integration
-│       └── FhirValidatorUtil.java            # HAPI FHIR R4 validation helper
+│       ├── FhirValidatorUtil.java            # HAPI FHIR R4 validation helper
+│       └── FakerUtil.java                    # Shared Faker provider for payload builders
 ├── src/test/resources/
 │   ├── Config-DevRoute.properties            # POST, GET, PUT, and DELETE routes
 │   └── log4j2.xml                            # Logging configuration placeholder

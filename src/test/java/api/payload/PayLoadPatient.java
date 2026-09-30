@@ -1,6 +1,6 @@
 package api.payload;
 
-import com.github.javafaker.Faker;
+import api.utilities.FakerUtil;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -10,7 +10,7 @@ public class PayLoadPatient {
 
     public static PatientData getPatientPayload() throws IOException {
 
-        Faker faker = new Faker();
+        var faker = FakerUtil.getFaker();
 
         String firstName = faker.name().firstName();
         String lastName = faker.name().lastName();

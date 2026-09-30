@@ -1,6 +1,6 @@
 package api.payload;
 
-import com.github.javafaker.Faker;
+import api.utilities.FakerUtil;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -62,7 +62,7 @@ public class ObservationData {
     private static ObservationData buildPayload(String patientId,
                                                 String observationId)
             throws IOException {
-        Faker faker = new Faker();
+        var faker = FakerUtil.getFaker();
 
         String status = "final";
         String codingSystem = "http://loinc.org";
