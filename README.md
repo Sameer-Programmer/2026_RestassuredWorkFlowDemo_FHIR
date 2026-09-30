@@ -1,6 +1,6 @@
 <div align="center">
 
-# FHIR Patient API Automation
+# FHIR Patient and Observation API Automation
 
 ### Rest Assured • TestNG • HAPI FHIR R4 • Extent Reports
 
@@ -13,7 +13,7 @@
 </p>
 
 <p>
-  <strong>A complete API automation workflow for creating and retrieving FHIR R4 Patient resources.</strong>
+  <strong>A complete API automation workflow for FHIR R4 Patient and Observation resources.</strong>
 </p>
 
 <p>
@@ -45,7 +45,7 @@
 
 ## Project overview
 
-This repository demonstrates a maintainable **REST API automation framework** for a FHIR R4 Patient workflow. It uses **Rest Assured** to send HTTP requests, **TestNG** to control the test lifecycle, **Java Faker** to create unique patient data, and **HAPI FHIR** to validate that request and response bodies conform to FHIR R4.
+This repository demonstrates a maintainable **REST API automation framework** for a chained FHIR R4 Patient and Observation workflow. It uses **Rest Assured** to send HTTP requests, **TestNG** to control the test lifecycle, **Java Faker** to create unique patient data, and **HAPI FHIR** to validate that request and response bodies conform to FHIR R4.
 
 The workflow is intentionally business-oriented:
 
@@ -53,12 +53,13 @@ The workflow is intentionally business-oriented:
 2. Validate the outgoing JSON as a FHIR R4 resource.
 3. Create the Patient with `POST /Patient`.
 4. Retrieve the created Patient with `GET /Patient/{patientId}`.
-5. Build a new complete Patient resource containing the same ID.
-6. Validate and update the Patient with `PUT /Patient/{patientId}`.
-7. Retrieve the updated Patient and verify the persisted changes.
-8. Delete the test Patient and verify that it is no longer retrievable.
+5. Create a dynamic HbA1c Observation linked to the Patient with `POST /Observation`.
+6. Retrieve and validate the Observation with `GET /Observation/{observationId}`.
+7. Validate and update the Patient with `PUT /Patient/{patientId}`.
+8. Retrieve the updated Patient and verify the persisted changes.
+9. Update and delete the Observation, then delete and verify the Patient.
 
-> **Verified result:** The complete create/read/update/delete workflow was executed against the configured HAPI FHIR server with **6 tests passed, 0 failures, and 0 skipped**. The server returned `200 OK` for DELETE and `410 Gone` when the deleted Patient was read afterward.
+> **Verified result:** The complete chained Patient and Observation workflow was executed against the configured HAPI FHIR server with **11 tests passed, 0 failures, and 0 skipped**. The server returned `200 OK` for DELETE and `410 Gone` when the deleted resources were read afterward.
 
 ## What the workflow verifies
 
@@ -134,16 +135,19 @@ flowchart TD
 ├── pom.xml                                  # Dependencies and Maven test configuration
 ├── testNg.xml                               # TestNG suite and Extent listener registration
 ├── TestData/
-│   └── patient.json                          # FHIR Patient template with placeholders
+│   ├── patient.json                          # FHIR Patient template with placeholders
+│   └── observation.json                      # FHIR Observation template with placeholders
 ├── src/test/java/api/
 │   ├── endPoints/
-│   │   └── PatientEndpoints.java             # POST, GET, PUT, and DELETE methods
+│   │   ├── PatientEndpoints.java              # Patient POST, GET, PUT, and DELETE methods
+│   │   └── ObservationEndpoints.java         # Observation POST, GET, PUT, and DELETE methods
 │   ├── payload/
 │   │   ├── PatientData.java                  # Generated values carried through assertions
 │   │   ├── PayLoadPatient.java               # Create payload generation
-│   │   └── PatientUpdateData.java            # Complete update payload generation
+│   │   ├── PatientUpdateData.java            # Complete update payload generation
+│   │   └── ObservationData.java              # Dynamic Observation create/update payloads
 │   ├── test/
-│   │   └── PatientTest.java                  # Create → get → update → get → delete workflow
+│   │   └── PatientTest.java                  # Chained Patient + Observation workflow
 │   └── utilities/
 │       ├── ConfigReader.java                 # Environment property loading
 │       ├── ExtentReportManager.java          # Report initialization
@@ -190,6 +194,10 @@ post_url=https://fhir-bootcamp.medblocks.com/fhir/Patient
 get_url=https://fhir-bootcamp.medblocks.com/fhir/Patient/{patientId}
 update_url=https://fhir-bootcamp.medblocks.com/fhir/Patient/{patientId}
 delete_url=https://fhir-bootcamp.medblocks.com/fhir/Patient/{patientId}
+observation_post_url=https://fhir-bootcamp.medblocks.com/fhir/Observation
+observation_get_url=https://fhir-bootcamp.medblocks.com/fhir/Observation/{observationId}
+observation_update_url=https://fhir-bootcamp.medblocks.com/fhir/Observation/{observationId}
+observation_delete_url=https://fhir-bootcamp.medblocks.com/fhir/Observation/{observationId}
 ```
 
 The `{patientId}` token is replaced at runtime with the ID returned by the create request.
