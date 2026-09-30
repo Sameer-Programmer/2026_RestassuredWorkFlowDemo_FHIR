@@ -1,5 +1,11 @@
 package api.payload;
 
+import api.utilities.FakerUtil;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 public class PatientData {
 
     private String firstName;
@@ -13,21 +19,35 @@ public class PatientData {
     private String postalCode;
     private String payload;
 
-    public PatientData(String firstName, String lastName, String phone,
-                       String gender, String birthDate, String street,
-                       String city, String state, String postalCode,
-                       String payload) {
+    public PatientData() throws IOException {
+        var faker = FakerUtil.getFaker();
 
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.phone = phone;
-        this.gender = gender;
-        this.birthDate = birthDate;
-        this.street = street;
-        this.city = city;
-        this.state = state;
-        this.postalCode = postalCode;
-        this.payload = payload;
+        firstName = faker.name().firstName();
+        lastName = faker.name().lastName();
+        phone = faker.phoneNumber().cellPhone();
+        gender = "male";
+        birthDate = "1990-05-12";
+        street = faker.address().streetAddress();
+        city = faker.address().city();
+        state = faker.address().stateAbbr();
+        postalCode = faker.address().zipCode();
+
+        Path patientData = Path.of(
+                System.getProperty("user.dir"),
+                "TestData",
+                "patient.json"
+        );
+
+        payload = Files.readString(patientData);
+        payload = payload.replace("{{firstName}}", firstName);
+        payload = payload.replace("{{lastName}}", lastName);
+        payload = payload.replace("{{phone}}", phone);
+        payload = payload.replace("{{gender}}", gender);
+        payload = payload.replace("{{birthDate}}", birthDate);
+        payload = payload.replace("{{street}}", street);
+        payload = payload.replace("{{city}}", city);
+        payload = payload.replace("{{state}}", state);
+        payload = payload.replace("{{postalCode}}", postalCode);
     }
 
     public String getFirstName() {

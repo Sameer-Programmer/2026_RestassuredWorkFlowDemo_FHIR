@@ -142,8 +142,7 @@ flowchart TD
 │   │   ├── PatientEndpoints.java              # Patient POST, GET, PUT, and DELETE methods
 │   │   └── ObservationEndpoints.java         # Observation POST, GET, PUT, and DELETE methods
 │   ├── payload/
-│   │   ├── PatientData.java                  # Generated values carried through assertions
-│   │   ├── PayLoadPatient.java               # Create payload generation
+│   │   ├── PatientData.java                  # Dynamic create payload and assertion data
 │   │   ├── PatientUpdateData.java            # Complete update payload generation
 │   │   └── ObservationData.java              # Dynamic Observation create/update payloads
 │   ├── test/
@@ -259,7 +258,7 @@ delete_url=https://your-server.example/fhir/Patient/{patientId}
 
 ### Step 2: Build dynamic patient data
 
-`PayLoadPatient.getPatientPayload()` uses Java Faker to create a first name, last name, phone number, street, city, state, and postal code. The gender and birth date are currently fixed values.
+`new PatientData()` uses the shared `FakerUtil` provider to create a first name, last name, phone number, street, city, state, and postal code. The gender and birth date are currently fixed values. It reads `TestData/patient.json`, replaces all placeholders, and stores the final JSON in `getPayload()`.
 
 The method reads `TestData/patient.json` and replaces placeholders such as:
 

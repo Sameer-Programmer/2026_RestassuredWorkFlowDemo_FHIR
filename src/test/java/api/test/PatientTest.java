@@ -4,7 +4,6 @@ import api.endPoints.ObservationEndpoints;
 import api.endPoints.PatientEndpoints;
 import api.payload.ObservationData;
 import api.payload.PatientData;
-import api.payload.PayLoadPatient;
 import api.payload.PatientUpdateData;
 import api.utilities.ConfigReader;
 import api.utilities.FhirValidatorUtil;
@@ -45,8 +44,7 @@ public class PatientTest {
         // 2. Generate Patient test data + JSON payload
         // --------------------------------------------------------
 
-        PatientData patientData =
-                PayLoadPatient.getPatientPayload();
+        PatientData patientData = new PatientData();
 
         String payload = patientData.getPayload();
 
