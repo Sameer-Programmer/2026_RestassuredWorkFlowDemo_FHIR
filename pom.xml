@@ -159,6 +159,9 @@
                     <suiteXmlFiles>
                         <suiteXmlFile>testNg.xml</suiteXmlFile>
                     </suiteXmlFiles>
+                    <systemPropertyVariables>
+                        <user.timezone>Asia/Kolkata</user.timezone>
+                    </systemPropertyVariables>
                 </configuration>
             </plugin>
 

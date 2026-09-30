@@ -224,7 +224,7 @@ The Maven Surefire plugin is configured to execute `testNg.xml`, which runs the 
 
 ## GitHub Actions
 
-The `FHIR API tests` workflow runs on every push and pull request, and can also be started manually from the repository's **Actions** tab. It sets up Temurin Java 21, runs `mvn clean test` against the configured FHIR server, and uploads the Surefire and Extent HTML reports as the `fhir-api-test-reports` artifact, including when a test run fails.
+The `FHIR API tests` workflow runs on every push and pull request, and can also be started manually from the repository's **Actions** tab. It sets up Temurin Java 21, uses the Asia/Kolkata timezone for report timestamps, runs `mvn clean test` against the configured FHIR server, and uploads the Surefire and Extent HTML reports as the `fhir-api-test-reports` artifact, including when a test run fails.
 
 ### Run against another environment file
 

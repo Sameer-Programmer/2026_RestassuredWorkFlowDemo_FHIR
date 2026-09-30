@@ -12,6 +12,8 @@ jobs:
   test:
     name: Run Maven tests
     runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Kolkata
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
