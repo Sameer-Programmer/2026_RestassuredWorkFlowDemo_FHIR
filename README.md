@@ -36,6 +36,7 @@
 - [Prerequisites](#prerequisites)
 - [Setup](#setup)
 - [Run the tests](#run-the-tests)
+- [GitHub Actions](#github-actions)
 - [Step-by-step implementation](#step-by-step-implementation)
 - [Validation coverage](#validation-coverage)
 - [Reports and results](#reports-and-results)
@@ -220,6 +221,10 @@ mvn clean test
 ```
 
 The Maven Surefire plugin is configured to execute `testNg.xml`, which runs the Patient and Observation positive/negative suites.
+
+## GitHub Actions
+
+The `FHIR API tests` workflow runs on every push and pull request, and can also be started manually from the repository's **Actions** tab. It sets up Temurin Java 21, runs `mvn clean test` against the configured FHIR server, and uploads the Surefire and Extent HTML reports as the `fhir-api-test-reports` artifact, including when a test run fails.
 
 ### Run against another environment file
 
@@ -501,7 +506,6 @@ The endpoint is intentionally external and environment-specific. For team or CI 
 - Add schema assertions for required response headers and FHIR metadata.
 - Add request/response logging with secrets and personal data masked.
 - Add parallel-safe test data cleanup or a non-persistent test environment.
-- Add CI execution and publish the Extent report as a build artifact.
 
 ## License
 
