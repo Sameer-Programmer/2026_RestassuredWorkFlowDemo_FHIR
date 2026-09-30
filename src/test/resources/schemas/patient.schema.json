@@ -1,0 +1,130 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "FHIR Patient API resource",
+  "type": "object",
+  "required": [
+    "resourceType",
+    "active",
+    "name",
+    "telecom",
+    "gender",
+    "birthDate",
+    "address"
+  ],
+  "properties": {
+    "resourceType": {
+      "const": "Patient"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "meta": {
+      "type": "object"
+    },
+    "active": {
+      "type": "boolean"
+    },
+    "name": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "family",
+          "given"
+        ],
+        "properties": {
+          "use": {
+            "type": "string"
+          },
+          "family": {
+            "type": "string",
+            "minLength": 1
+          },
+          "given": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "telecom": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "system",
+          "value"
+        ],
+        "properties": {
+          "system": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string",
+            "minLength": 1
+          },
+          "use": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "gender": {
+      "type": "string",
+      "enum": [
+        "male",
+        "female",
+        "other",
+        "unknown"
+      ]
+    },
+    "birthDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "address": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "line": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "city": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "postalCode": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "deceasedBoolean": {
+      "type": "boolean"
+    },
+    "multipleBirthBoolean": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": true
+}

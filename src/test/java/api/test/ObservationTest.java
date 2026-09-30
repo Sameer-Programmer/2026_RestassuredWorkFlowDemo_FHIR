@@ -4,6 +4,7 @@ import api.endPoints.ObservationEndpoints;
 import api.payload.ObservationData;
 import api.utilities.ConfigReader;
 import api.utilities.FhirValidatorUtil;
+import api.utilities.JsonSchemaValidatorUtil;
 import io.restassured.response.Response;
 import org.testng.Assert;
 import org.testng.ITestContext;
@@ -29,6 +30,7 @@ public class ObservationTest {
         ObservationData observationData = new ObservationData(patientId);
         String payload = observationData.getPayload();
         FhirValidatorUtil.validate(payload);
+        JsonSchemaValidatorUtil.validate(payload, "schemas/observation.schema.json");
 
         Response response = ObservationEndpoints.createObservation(
                 prop.getProperty("observation_post_url"), payload);
@@ -38,6 +40,7 @@ public class ObservationTest {
         Assert.assertEquals(response.statusCode(), 201,
                 "Observation creation failed. Expected HTTP 201.");
         FhirValidatorUtil.validate(response.asString());
+        JsonSchemaValidatorUtil.validate(response.asString(), "schemas/observation.schema.json");
         Assert.assertEquals(response.jsonPath().getString("resourceType"), "Observation",
                 "Resource type is not Observation");
         Assert.assertEquals(response.jsonPath().getString("status"), observationData.getStatus(),
@@ -83,6 +86,7 @@ public class ObservationTest {
 
         Assert.assertEquals(response.statusCode(), 200, "Failed to retrieve Observation");
         FhirValidatorUtil.validate(response.asString());
+        JsonSchemaValidatorUtil.validate(response.asString(), "schemas/observation.schema.json");
         Assert.assertEquals(response.jsonPath().getString("resourceType"), "Observation",
                 "Resource type is not Observation");
         Assert.assertEquals(response.jsonPath().getString("id"), observationId,
@@ -110,6 +114,7 @@ public class ObservationTest {
                 .replace("{observationId}", observationId);
         String payload = updateData.getPayload();
         FhirValidatorUtil.validate(payload);
+        JsonSchemaValidatorUtil.validate(payload, "schemas/observation.schema.json");
 
         Response response = ObservationEndpoints.updateObservation(url, payload);
         System.out.println("========== UPDATE OBSERVATION ==========");
@@ -118,6 +123,7 @@ public class ObservationTest {
         Assert.assertEquals(response.statusCode(), 200,
                 "Observation update failed. Expected HTTP 200.");
         FhirValidatorUtil.validate(response.asString());
+        JsonSchemaValidatorUtil.validate(response.asString(), "schemas/observation.schema.json");
         Assert.assertEquals(response.jsonPath().getString("resourceType"), "Observation",
                 "Resource type is not Observation");
         Assert.assertEquals(response.jsonPath().getString("id"), observationId,

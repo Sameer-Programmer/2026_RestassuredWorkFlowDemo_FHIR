@@ -5,6 +5,7 @@ import api.payload.PatientData;
 import api.payload.PatientUpdateData;
 import api.utilities.ConfigReader;
 import api.utilities.FhirValidatorUtil;
+import api.utilities.JsonSchemaValidatorUtil;
 
 import io.restassured.response.Response;
 
@@ -57,6 +58,7 @@ public class PatientTest {
         System.out.println("\n========== FHIR REQUEST VALIDATION ==========");
 
         FhirValidatorUtil.validate(payload);
+        JsonSchemaValidatorUtil.validate(payload, "schemas/patient.schema.json");
 
         System.out.println("FHIR request validation passed.");
 
@@ -93,6 +95,7 @@ public class PatientTest {
         FhirValidatorUtil.validate(
                 response.asString()
         );
+        JsonSchemaValidatorUtil.validate(response.asString(), "schemas/patient.schema.json");
 
         System.out.println("FHIR response validation passed.");
 
@@ -301,6 +304,7 @@ public class PatientTest {
         FhirValidatorUtil.validate(
                 response.asString()
         );
+        JsonSchemaValidatorUtil.validate(response.asString(), "schemas/patient.schema.json");
 
         System.out.println(
                 "FHIR GET response validation passed."
@@ -374,6 +378,7 @@ public class PatientTest {
 
         System.out.println("\n========== FHIR UPDATE REQUEST VALIDATION ==========");
         FhirValidatorUtil.validate(payload);
+        JsonSchemaValidatorUtil.validate(payload, "schemas/patient.schema.json");
 
         Response response = PatientEndpoints.updatePatient(url, payload);
         System.out.println("\nUpdate Response:");
@@ -387,6 +392,7 @@ public class PatientTest {
 
         System.out.println("\n========== FHIR UPDATE RESPONSE VALIDATION ==========");
         FhirValidatorUtil.validate(response.asString());
+        JsonSchemaValidatorUtil.validate(response.asString(), "schemas/patient.schema.json");
 
         Assert.assertEquals(
                 response.jsonPath().getString("resourceType"),
@@ -471,6 +477,7 @@ public class PatientTest {
                 "Failed to retrieve updated Patient"
         );
         FhirValidatorUtil.validate(response.asString());
+        JsonSchemaValidatorUtil.validate(response.asString(), "schemas/patient.schema.json");
         Assert.assertEquals(
                 response.jsonPath().getString("resourceType"),
                 "Patient",

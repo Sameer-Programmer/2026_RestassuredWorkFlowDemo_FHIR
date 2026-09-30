@@ -154,8 +154,12 @@ flowchart TD
 │       ├── ExtentReportManager.java          # Report initialization
 │       ├── ExtentTestListener.java           # TestNG-to-Extent integration
 │       ├── FhirValidatorUtil.java            # HAPI FHIR R4 validation helper
+│       ├── JsonSchemaValidatorUtil.java      # JSON Schema validation helper
 │       └── FakerUtil.java                    # Shared Faker provider for payload builders
 ├── src/test/resources/
+│   ├── schemas/
+│   │   ├── patient.schema.json               # Patient API resource contract
+│   │   └── observation.schema.json           # Observation API resource contract
 │   ├── Config-DevRoute.properties            # POST, GET, PUT, and DELETE routes
 │   └── log4j2.xml                            # Logging configuration placeholder
 └── test-output/
@@ -442,7 +446,7 @@ The workflow combines three complementary validation styles:
 2. **FHIR validation** — HAPI FHIR R4 structural and semantic validation.
 3. **Business assertions** — generated input must match the persisted response.
 
-This combination catches both malformed FHIR documents and incorrect API behavior.
+This combination catches malformed FHIR resources, JSON structure/type mismatches, and incorrect API behavior. The Patient and Observation JSON Schemas are applied to create/update request payloads and create/read/update responses. The schemas cover the resource fields used by this API workflow while allowing additional FHIR fields, including server-generated metadata.
 
 ## Reports and results
 
