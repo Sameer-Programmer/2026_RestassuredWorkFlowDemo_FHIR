@@ -59,7 +59,7 @@ The workflow is intentionally business-oriented:
 8. Retrieve the updated Patient and verify the persisted changes.
 9. Update and delete the Observation, then delete and verify the Patient.
 
-> **Verified result:** The complete chained Patient and Observation workflow was executed against the configured HAPI FHIR server with **11 tests passed, 0 failures, and 0 skipped**. The server returned `200 OK` for DELETE and `410 Gone` when the deleted resources were read afterward.
+> **Verified result:** The complete chained Patient and Observation workflow plus four negative Observation tests was executed against the configured HAPI FHIR server with **15 tests passed, 0 failures, and 0 skipped**. The server returned `200 OK` for DELETE and `410 Gone` when deleted resources were read afterward.
 
 ## What the workflow verifies
 
@@ -147,7 +147,8 @@ flowchart TD
 │   │   ├── PatientUpdateData.java            # Complete update payload generation
 │   │   └── ObservationData.java              # Dynamic Observation create/update payloads
 │   ├── test/
-│   │   └── PatientTest.java                  # Chained Patient + Observation workflow
+│   │   ├── PatientTest.java                  # Chained Patient + Observation workflow
+│   │   └── ObservationNegativeTest.java      # Invalid and unknown-resource coverage
 │   └── utilities/
 │       ├── ConfigReader.java                 # Environment property loading
 │       ├── ExtentReportManager.java          # Report initialization
@@ -218,7 +219,7 @@ The required dependencies are declared in `pom.xml`, including Rest Assured, Tes
 mvn clean test
 ```
 
-The Maven Surefire plugin is configured to execute `testNg.xml`, which runs the `Patient API Tests` suite.
+The Maven Surefire plugin is configured to execute `testNg.xml`, which runs the Patient and Observation positive/negative suites.
 
 ### Run against another environment file
 

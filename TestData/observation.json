@@ -19,5 +19,10 @@
   "subject": {
     "reference": "Patient/{{patientId}}"
   },
+  "note": [
+    {
+      "text": {{note}}
+    }
+  ],
   "effectiveDateTime": "{{effectiveDate}}"
 }

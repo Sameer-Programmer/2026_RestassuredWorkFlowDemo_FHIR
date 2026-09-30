@@ -377,14 +377,28 @@ public class PatientTest {
         FhirValidatorUtil.validate(response.asString());
         Assert.assertEquals(response.jsonPath().getString("resourceType"), "Observation",
                 "Resource type is not Observation");
-        Assert.assertEquals(response.jsonPath().getString("status"), "final",
+        Assert.assertEquals(response.jsonPath().getString("status"), observationData.getStatus(),
                 "Observation status mismatch");
-        Assert.assertEquals(response.jsonPath().getString("code.coding[0].code"), "4548-4",
+        Assert.assertEquals(response.jsonPath().getString("code.coding[0].system"), observationData.getCodingSystem(),
+                "Observation coding system mismatch");
+        Assert.assertEquals(response.jsonPath().getString("code.coding[0].code"), observationData.getCodingCode(),
                 "Observation LOINC code mismatch");
+        Assert.assertEquals(response.jsonPath().getString("code.coding[0].display"), observationData.getCodingDisplay(),
+                "Observation coding display mismatch");
         Assert.assertEquals(response.jsonPath().getDouble("valueQuantity.value"), observationData.getValue(),
                 "Observation value mismatch");
+        Assert.assertEquals(response.jsonPath().getString("valueQuantity.unit"), observationData.getUnit(),
+                "Observation unit mismatch");
+        Assert.assertEquals(response.jsonPath().getString("valueQuantity.system"), observationData.getQuantitySystem(),
+                "Observation quantity system mismatch");
+        Assert.assertEquals(response.jsonPath().getString("valueQuantity.code"), observationData.getQuantityCode(),
+                "Observation quantity code mismatch");
         Assert.assertEquals(response.jsonPath().getString("subject.reference"), "Patient/" + patientId,
                 "Observation subject mismatch");
+        Assert.assertEquals(response.jsonPath().getString("effectiveDateTime"), observationData.getEffectiveDate(),
+                "Observation effective date mismatch");
+        Assert.assertEquals(response.jsonPath().getString("note[0].text"), observationData.getNote(),
+                "Observation note mismatch");
 
         String observationId = response.jsonPath().getString("id");
         Assert.assertNotNull(observationId, "Observation ID should not be null");
@@ -418,6 +432,11 @@ public class PatientTest {
                 "Observation value should be present");
         Assert.assertNotNull(response.jsonPath().getString("subject.reference"),
                 "Observation subject should be present");
+        ObservationData observationData = (ObservationData) context.getAttribute("observationData");
+        Assert.assertEquals(response.jsonPath().getString("code.coding[0].display"), observationData.getCodingDisplay(),
+                "Observation coding display mismatch after GET");
+        Assert.assertEquals(response.jsonPath().getDouble("valueQuantity.value"), observationData.getValue(),
+                "Observation value mismatch after GET");
     }
 
     // ============================================================
@@ -603,10 +622,23 @@ public class PatientTest {
                 "Resource type is not Observation");
         Assert.assertEquals(response.jsonPath().getString("id"), observationId,
                 "Updated Observation ID mismatch");
+        Assert.assertEquals(response.jsonPath().getString("code.coding[0].system"), updateData.getCodingSystem(),
+                "Updated Observation coding system mismatch");
+        Assert.assertEquals(response.jsonPath().getString("code.coding[0].code"), updateData.getCodingCode(),
+                "Updated Observation LOINC code mismatch");
+        Assert.assertEquals(response.jsonPath().getString("code.coding[0].display"), updateData.getCodingDisplay(),
+                "Updated Observation coding display mismatch");
         Assert.assertEquals(response.jsonPath().getDouble("valueQuantity.value"), updateData.getValue(),
                 "Updated Observation value mismatch");
+        Assert.assertEquals(response.jsonPath().getString("valueQuantity.unit"), updateData.getUnit(),
+                "Updated Observation unit mismatch");
         Assert.assertEquals(response.jsonPath().getString("subject.reference"), "Patient/" + patientId,
                 "Updated Observation subject mismatch");
+        Assert.assertEquals(response.jsonPath().getString("effectiveDateTime"), updateData.getEffectiveDate(),
+                "Updated Observation effective date mismatch");
+        Assert.assertEquals(response.jsonPath().getString("note[0].text"), updateData.getNote(),
+                "Updated Observation note mismatch");
+        context.setAttribute("updatedObservationData", updateData);
     }
 
     // ============================================================

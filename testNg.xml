@@ -9,10 +9,11 @@
         <listener class-name="api.utilities.ExtentTestListener"/>
     </listeners>
 
-    <test name="Patient API Tests">
+    <test name="Patient and Observation API Tests">
 
         <classes>
             <class name="api.test.PatientTest"/>
+            <class name="api.test.ObservationNegativeTest"/>
         </classes>
 
     </test>
