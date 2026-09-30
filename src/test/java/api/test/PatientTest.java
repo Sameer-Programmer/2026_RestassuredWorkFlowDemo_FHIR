@@ -361,7 +361,7 @@ public class PatientTest {
         String patientId = (String) context.getAttribute("patientId");
         Assert.assertNotNull(patientId, "Patient ID was not available for Observation creation");
 
-        ObservationData observationData = ObservationData.getObservationPayload(patientId);
+        ObservationData observationData = new ObservationData(patientId);
         String payload = observationData.getPayload();
         FhirValidatorUtil.validate(payload);
 
@@ -603,7 +603,7 @@ public class PatientTest {
         Assert.assertNotNull(patientId, "Patient ID was not available for Observation update");
         Assert.assertNotNull(observationId, "Observation ID was not available for update");
 
-        ObservationData updateData = ObservationData.getObservationUpdatePayload(patientId, observationId);
+        ObservationData updateData = new ObservationData(patientId, observationId);
         String url = prop.getProperty("observation_update_url")
                 .replace("{observationId}", observationId);
         String payload = updateData.getPayload();

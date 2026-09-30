@@ -22,60 +22,32 @@ public class ObservationData {
     private String note;
     private String payload;
 
-    public ObservationData(String patientId,
-                           String status,
-                           String codingSystem,
-                           String codingCode,
-                           String codingDisplay,
-                           double value,
-                           String unit,
-                           String quantitySystem,
-                           String quantityCode,
-                           String effectiveDate,
-                           String note,
-                           String payload) {
-        this.patientId = patientId;
-        this.status = status;
-        this.codingSystem = codingSystem;
-        this.codingCode = codingCode;
-        this.codingDisplay = codingDisplay;
-        this.value = value;
-        this.unit = unit;
-        this.quantitySystem = quantitySystem;
-        this.quantityCode = quantityCode;
-        this.effectiveDate = effectiveDate;
-        this.note = note;
-        this.payload = payload;
+    public ObservationData(String patientId) throws IOException {
+        buildPayload(patientId, null);
     }
 
-    public static ObservationData getObservationPayload(String patientId)
+    public ObservationData(String patientId, String observationId)
             throws IOException {
-        return buildPayload(patientId, null);
+        buildPayload(patientId, observationId);
     }
 
-    public static ObservationData getObservationUpdatePayload(String patientId,
-                                                               String observationId)
-            throws IOException {
-        return buildPayload(patientId, observationId);
-    }
-
-    private static ObservationData buildPayload(String patientId,
-                                                String observationId)
+    private void buildPayload(String patientId, String observationId)
             throws IOException {
         var faker = FakerUtil.getFaker();
 
-        String status = "final";
-        String codingSystem = "http://loinc.org";
-        String codingCode = "4548-4";
-        String codingDisplay = "Hemoglobin A1c/Hemoglobin.total in Blood";
-        double value = faker.number().numberBetween(40, 99) / 10.0;
-        String unit = "%";
-        String quantitySystem = "http://unitsofmeasure.org";
-        String quantityCode = "%";
-        String effectiveDate = LocalDate.now()
+        this.patientId = patientId;
+        this.status = "final";
+        this.codingSystem = "http://loinc.org";
+        this.codingCode = "4548-4";
+        this.codingDisplay = "Hemoglobin A1c/Hemoglobin.total in Blood";
+        this.value = faker.number().numberBetween(40, 99) / 10.0;
+        this.unit = "%";
+        this.quantitySystem = "http://unitsofmeasure.org";
+        this.quantityCode = "%";
+        this.effectiveDate = LocalDate.now()
                 .minusDays(faker.number().numberBetween(0, 30))
                 .toString();
-        String note = faker.lorem().sentence(8);
+        this.note = faker.lorem().sentence(8);
 
         Path observationData = Path.of(
                 System.getProperty("user.dir"),
@@ -83,52 +55,72 @@ public class ObservationData {
                 "observation.json"
         );
 
-        String payload = Files.readString(observationData);
-        payload = payload.replace("{{patientId}}", patientId);
-        payload = payload.replace("{{status}}", status);
-        payload = payload.replace("{{codingSystem}}", codingSystem);
-        payload = payload.replace("{{codingCode}}", codingCode);
-        payload = payload.replace("{{codingDisplay}}", codingDisplay);
-        payload = payload.replace("{{value}}", Double.toString(value));
-        payload = payload.replace("{{unit}}", unit);
-        payload = payload.replace("{{quantitySystem}}", quantitySystem);
-        payload = payload.replace("{{quantityCode}}", quantityCode);
-        payload = payload.replace("{{effectiveDate}}", effectiveDate);
-        payload = payload.replace("{{note}}", note);
+        this.payload = Files.readString(observationData);
+        this.payload = this.payload.replace("{{patientId}}", this.patientId);
+        this.payload = this.payload.replace("{{status}}", this.status);
+        this.payload = this.payload.replace("{{codingSystem}}", this.codingSystem);
+        this.payload = this.payload.replace("{{codingCode}}", this.codingCode);
+        this.payload = this.payload.replace("{{codingDisplay}}", this.codingDisplay);
+        this.payload = this.payload.replace("{{value}}", Double.toString(this.value));
+        this.payload = this.payload.replace("{{unit}}", this.unit);
+        this.payload = this.payload.replace("{{quantitySystem}}", this.quantitySystem);
+        this.payload = this.payload.replace("{{quantityCode}}", this.quantityCode);
+        this.payload = this.payload.replace("{{effectiveDate}}", this.effectiveDate);
+        this.payload = this.payload.replace("{{note}}", this.note);
 
         if (observationId != null) {
-            payload = payload.replace(
+            this.payload = this.payload.replace(
                     "\"resourceType\": \"Observation\"",
                     "\"resourceType\": \"Observation\",\n  \"id\": \""
                             + observationId + "\"");
         }
-
-        return new ObservationData(
-                patientId,
-                status,
-                codingSystem,
-                codingCode,
-                codingDisplay,
-                value,
-                unit,
-                quantitySystem,
-                quantityCode,
-                effectiveDate,
-                note,
-                payload
-        );
     }
 
-    public String getPatientId() { return patientId; }
-    public String getStatus() { return status; }
-    public String getCodingSystem() { return codingSystem; }
-    public String getCodingCode() { return codingCode; }
-    public String getCodingDisplay() { return codingDisplay; }
-    public double getValue() { return value; }
-    public String getUnit() { return unit; }
-    public String getQuantitySystem() { return quantitySystem; }
-    public String getQuantityCode() { return quantityCode; }
-    public String getEffectiveDate() { return effectiveDate; }
-    public String getNote() { return note; }
-    public String getPayload() { return payload; }
+    public String getPatientId() {
+        return patientId;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public String getCodingSystem() {
+        return codingSystem;
+    }
+
+    public String getCodingCode() {
+        return codingCode;
+    }
+
+    public String getCodingDisplay() {
+        return codingDisplay;
+    }
+
+    public double getValue() {
+        return value;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public String getQuantitySystem() {
+        return quantitySystem;
+    }
+
+    public String getQuantityCode() {
+        return quantityCode;
+    }
+
+    public String getEffectiveDate() {
+        return effectiveDate;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public String getPayload() {
+        return payload;
+    }
 }
